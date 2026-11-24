@@ -1,4 +1,4 @@
-import { ConflictFile } from "../types";
+import { ConflictFile } from "../../types";
 
 /**
  * Produce a simple line-by-line diff summary between ours and theirs.

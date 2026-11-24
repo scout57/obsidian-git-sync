@@ -1,53 +1,50 @@
 import {requestUrl} from "obsidian";
 import {GitHubUser} from "../types";
+import {Settings} from "../core";
 
-async function ghFetch<T>(
-    url: string,
-    path: string,
-    token: string,
-    options: { method?: string; body?: object } = {}
-): Promise<T> {
-    const response = await requestUrl({
-        url: `${url}${path}`,
-        method: options.method ?? "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Content-Type": "application/json",
-        },
-        body: options.body ? JSON.stringify(options.body) : undefined,
-        throw: false,
-    });
+export class GitHubApi {
 
-    if (response.status >= 400) {
-        const err = response.json as { message?: string };
-        throw new Error(`GitHub API error ${response.status}: ${err.message ?? "unknown"}`);
+    constructor(protected readonly settings: Settings) {
     }
 
-    return response.json as T;
-}
+    async getAuthenticatedUser(): Promise<GitHubUser> {
+        return this.request<GitHubUser>("/user");
+    }
 
-/** Get authenticated user info */
-export async function getAuthenticatedUser(url: string, token: string): Promise<GitHubUser> {
-    return ghFetch<GitHubUser>(url, "/user", token);
-}
+    async repoExists(): Promise<boolean> {
+        const username = this.settings.data.githubUsername;
+        const repoName = this.settings.data.repoName;
 
-/** Check if a repo exists under the authenticated user */
-export async function repoExists(
-    url: string,
-    token: string,
-    username: string,
-    repoName: string
-): Promise<boolean> {
-    const response = await requestUrl({
-        url: `${url}/repos/${username}/${repoName}`,
-        method: "GET",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/vnd.github+json",
-        },
-        throw: false,
-    });
-    return response.status === 200;
+        try {
+            await this.request<{}>(`/repos/${username}/${repoName}`);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private async request<T>(path: string, options: { method?: string; body?: object } = {}): Promise<T> {
+        const url = this.settings.data.repoApiHost;
+        const token = this.settings.data.githubToken;
+
+        const response = await requestUrl({
+            url: `${url}${path}`,
+            method: options.method ?? "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+                "Content-Type": "application/json",
+            },
+            body: options.body ? JSON.stringify(options.body) : undefined,
+            throw: false,
+        });
+
+        if (response.status >= 400) {
+            const err = response.json as { message?: string };
+            throw new Error(`GitHub API error ${response.status}: ${err.message ?? "unknown"}`);
+        }
+
+        return response.json as T;
+    }
 }

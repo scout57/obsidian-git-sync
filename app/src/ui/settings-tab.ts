@@ -1,6 +1,5 @@
 import {App, PluginSettingTab, Setting, Notice, ButtonComponent} from "obsidian";
 import type MultiSyncPlugin from "../main";
-import {getAuthenticatedUser} from "../github/api";
 import {PLUGIN_TITLE} from "../constants";
 
 export class MultiSyncSettingsTab extends PluginSettingTab {
@@ -16,7 +15,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
         containerEl.empty();
         containerEl.createEl("h2", {text: `${PLUGIN_TITLE} Settings`});
 
-        const settings = this.plugin.settings;
+        const settings = this.plugin.settings.data;
 
         // ── Account section ──────────────────────────────────────────────────────
         containerEl.createEl("h3", {text: "Git Auth"});
@@ -30,7 +29,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                     .setPlaceholder('https://api.github.com')
                     .onChange(async (val) => {
                         settings.repoApiHost = val;
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -43,7 +42,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                     .setPlaceholder('https://github.com')
                     .onChange(async (val) => {
                         settings.repoHubHost = val;
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -56,7 +55,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                     .setPlaceholder('obsidian-storage')
                     .onChange(async (val) => {
                         settings.repoName = val;
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -69,7 +68,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                     .setPlaceholder('scout57')
                     .onChange(async (val) => {
                         settings.githubUsername = val;
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -83,7 +82,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                     .setPlaceholder('XXXXXXXXXXXXXX')
                     .onChange(async (val) => {
                         settings.githubToken = val;
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -108,7 +107,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
             .addToggle((toggle) =>
                 toggle.setValue(settings.autoSync).onChange(async (val) => {
                     settings.autoSync = val;
-                    await this.plugin.saveSettings();
+                    await this.plugin.settings.save();
                 })
             );
 
@@ -122,7 +121,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                     .setDynamicTooltip()
                     .onChange(async (val) => {
                         settings.syncIntervalMs = val;
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -137,7 +136,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                             .split("\n")
                             .map((s) => s.trim())
                             .filter(Boolean);
-                        await this.plugin.saveSettings();
+                        await this.plugin.settings.save();
                     })
             );
 
@@ -149,7 +148,7 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
             .setDesc("Immediately push all local changes and pull remote changes.")
             .addButton((btn) =>
                 btn.setButtonText("Sync Now").onClick(async () => {
-                    await this.plugin.triggerManualSync();
+                    // await this.plugin.triggerManualSync();
                 })
             );
 
@@ -167,15 +166,14 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
         btn.setButtonText("Connecting…").setDisabled(true);
 
         try {
-            const user = await getAuthenticatedUser(this.plugin.settings.repoApiHost, this.plugin.settings.githubToken);
+            const user = await this.plugin.github.getAuthenticatedUser();
 
-            // await this.plugin.test();
-            await this.plugin.initRepo();
+            // await this.plugin.initRepo();
 
 
             new Notice(`Success! You are @${user.login}.`);
             btn.setButtonText("Connected!").setDisabled(false);
-        } catch (err){
+        } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             // Remove the code panel if it's still visible
             new Notice(`Connection failed: ${msg}`);

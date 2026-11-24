@@ -1,6 +1,6 @@
-import { SYNC_DEBOUNCE_MS } from "../constants";
+import { SYNC_DEBOUNCE_MS } from "../../constants";
 import { GitSync } from "./git-sync";
-import { SyncResult, SyncStatus } from "../types";
+import { SyncResult, SyncStatus } from "../../types";
 
 type StatusCallback = (status: SyncStatus, detail?: string) => void;
 

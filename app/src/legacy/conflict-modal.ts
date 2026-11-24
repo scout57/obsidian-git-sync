@@ -1,6 +1,6 @@
 import { App, Modal, Setting, Component } from "obsidian";
 import { ConflictFile } from "../types";
-import { diffSummary } from "../sync/conflict";
+import { diffSummary } from "./sync/conflict";
 
 type ResolveCallback = (filepath: string, resolvedContent: string) => Promise<void>;
 

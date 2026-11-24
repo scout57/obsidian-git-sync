@@ -5,8 +5,8 @@ import {
     GIT_AUTHOR_NAME,
     GIT_AUTHOR_EMAIL,
     PLUGIN_TITLE, translatePath,
-} from "../constants";
-import {ConflictFile, SyncResult} from "../types";
+} from "../../constants";
+import {ConflictFile, SyncResult} from "../../types";
 
 // Custom HTTP client that uses Obsidian's requestUrl (mobile-safe, bypasses CORS)
 const gitHttp = {
