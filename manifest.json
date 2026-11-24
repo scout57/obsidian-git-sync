@@ -1,0 +1,11 @@
+{
+  "id": "scout-git-sync",
+  "name": "Git Sync",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Синхронизация Obsidian через GitHub",
+  "author": "Alexey Korol",
+  "authorUrl": "https://github.com/scout57",
+  "fundingUrl": "",
+  "isDesktopOnly": false
+}
