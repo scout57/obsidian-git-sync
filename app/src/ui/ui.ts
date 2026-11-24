@@ -1,17 +1,18 @@
-import {PullBarItem} from "./pull-bar";
 import {App, Plugin} from "obsidian";
-import {PushBarItem} from "./push-bar";
+import {BarButton} from "./button-bar";
 import {MultiSyncSettingsTab} from "./settings-tab";
 import MultiSyncPlugin from "../main";
 
 export class UI {
-    public readonly pull: PullBarItem;
-    public readonly push: PushBarItem;
+    // public readonly clone: BarButton;
+    public readonly pull: BarButton;
+    // public readonly push: BarButton;
     public readonly settings: MultiSyncSettingsTab;
 
-    constructor(app: App, plugin: MultiSyncPlugin) {
-        this.pull = new PullBarItem(plugin);
-        this.push = new PushBarItem(plugin);
-        this.settings = new MultiSyncSettingsTab(app, plugin);
+    constructor(plugin: MultiSyncPlugin) {
+        // this.clone = new BarButton(plugin, 'Clone', '+');
+        this.pull = new BarButton(plugin, 'Pull', '↓');
+        // this.push = new BarButton(plugin, 'Push', '↑');
+        this.settings = new MultiSyncSettingsTab(plugin);
     }
 }

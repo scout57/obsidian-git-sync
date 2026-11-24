@@ -1,6 +1,6 @@
 import {requestUrl} from "obsidian";
 import {GitHubUser} from "../types";
-import {Settings} from "../core";
+import {Settings} from "./index";
 
 export class GitHubApi {
 

@@ -3,11 +3,9 @@ import type MultiSyncPlugin from "../main";
 import {PLUGIN_TITLE} from "../constants";
 
 export class MultiSyncSettingsTab extends PluginSettingTab {
-    plugin: MultiSyncPlugin;
 
-    constructor(app: App, plugin: MultiSyncPlugin) {
-        super(app, plugin);
-        this.plugin = plugin;
+    constructor(protected readonly plugin: MultiSyncPlugin) {
+        super(plugin.app, plugin);
     }
 
     display(): void {
@@ -96,70 +94,6 @@ export class MultiSyncSettingsTab extends PluginSettingTab {
                         await this.startAuthCheck(btn)
                     })
             );
-
-
-        // ── Sync options ──────────────────────────────────────────────────────────
-        containerEl.createEl("h3", {text: "Sync Options"});
-
-        new Setting(containerEl)
-            .setName("Auto-sync")
-            .setDesc("Automatically sync when files are modified.")
-            .addToggle((toggle) =>
-                toggle.setValue(settings.autoSync).onChange(async (val) => {
-                    settings.autoSync = val;
-                    await this.plugin.settings.save();
-                })
-            );
-
-        new Setting(containerEl)
-            .setName("Sync debounce (ms)")
-            .setDesc("Wait this many milliseconds after the last edit before syncing.")
-            .addSlider((slider) =>
-                slider
-                    .setLimits(1000, 10000, 500)
-                    .setValue(settings.syncIntervalMs)
-                    .setDynamicTooltip()
-                    .onChange(async (val) => {
-                        settings.syncIntervalMs = val;
-                        await this.plugin.settings.save();
-                    })
-            );
-
-        new Setting(containerEl)
-            .setName("Excluded patterns")
-            .setDesc("One pattern per line. These files will never be synced.")
-            .addTextArea((ta) =>
-                ta
-                    .setValue(settings.excludePatterns.join("\n"))
-                    .onChange(async (val) => {
-                        settings.excludePatterns = val
-                            .split("\n")
-                            .map((s) => s.trim())
-                            .filter(Boolean);
-                        await this.plugin.settings.save();
-                    })
-            );
-
-        // ── Manual sync ───────────────────────────────────────────────────────────
-        containerEl.createEl("h3", {text: "Manual Sync"});
-
-        new Setting(containerEl)
-            .setName("Sync now")
-            .setDesc("Immediately push all local changes and pull remote changes.")
-            .addButton((btn) =>
-                btn.setButtonText("Sync Now").onClick(async () => {
-                    // await this.plugin.triggerManualSync();
-                })
-            );
-
-        // ── Last sync time ────────────────────────────────────────────────────────
-        if (settings.lastSyncTime > 0) {
-            const lastSync = new Date(settings.lastSyncTime).toLocaleString();
-            containerEl.createEl("p", {
-                text: `Last synced: ${lastSync}`,
-                cls: "setting-item-description",
-            });
-        }
     }
 
     private async startAuthCheck(btn: ButtonComponent): Promise<void> {

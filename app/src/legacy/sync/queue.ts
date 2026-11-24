@@ -36,6 +36,7 @@ export class SyncQueue {
     if (this.running || this.pendingFiles.size === 0) return null;
 
     this.running = true;
+    // @ts-ignore
     const filesToSync = [...this.pendingFiles];
     this.pendingFiles.clear();
 
