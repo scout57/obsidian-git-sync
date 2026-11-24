@@ -1,0 +1,20 @@
+{
+  "name": "scout-obsidian-git-sync",
+  "version": "1.0.0",
+  "description": "Obsidian plugin - GitHub sync",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs --watch" ,
+    "build": "node esbuild.config.mjs production"
+  },
+  "dependencies": {
+    "isomorphic-git": "^1.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "latest",
+    "tslib": "^2.6.0",
+    "typescript": "^5.3.0"
+  }
+}
