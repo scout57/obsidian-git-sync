@@ -1,8 +1,13 @@
 name: Опубликовать бандл
+
 on:
   push:
     tags:
       - "v*"
+
+permissions:
+  contents: write
+
 
 jobs:
   build-and-push:
