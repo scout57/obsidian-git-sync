@@ -27,8 +27,8 @@ export default class MultiSyncPlugin extends Plugin {
         await this.settings.load();
 
         // this.ui.clone.onClick(() => new Notice('clone !'));
-        this.ui.pull.onClick(async () => this.sync.onStartup());
-        // this.ui.push.onClick(() => new Notice('push !'));
+        this.ui.pull.onClick(async () => await this.sync.onStartup());
+        this.ui.push.onClick(async () => await this.sync.push());
 
         this.addSettingTab(this.ui.settings);
 

@@ -1,8 +1,24 @@
-import {GitSdk} from "./git-sdk";
+import {GitSdk, TAddStatus} from "./git-sdk";
 import {Log, Notify} from "../constants";
 
 export class SyncService {
     constructor(protected readonly git: GitSdk) {
+    }
+
+    async push() {
+        try { // попытаться наложить свои изменения на remote
+            const hasStage = await this.git.addAll();
+            if (!hasStage) {
+                return;
+            }
+            await this.git.commit();
+            await this.git.pushOrFail();
+            Notify('push: success')
+        } catch (error) {
+            Notify(error.message);
+            await this.git.removeAll();
+            throw error;
+        }
     }
 
     async onStartup() {
@@ -22,13 +38,11 @@ export class SyncService {
         // Гарантировать текущую ветку
         if (!await this.git.hasRemoteBranch()) { // нет даже удаленно
             await this.git.createTargetBranchOrFail();
-        } else if (await this.git.hasConflicts()) { // есть конфликты
-            Notify('Есть конфликты: фикс руками')
-        } else { // есть удаленно, нет конфликтов
+        } else {
             await this.git.checkoutOrFail();
         }
 
 
-        Log('onStartup: ready');
+        Log('onStartup: success');
     }
 }

@@ -1,9 +1,16 @@
 import {createFsAdapter} from "../legacy/sync/fs-adapter";
 import {App, DataAdapter, Notice, requestUrl} from "obsidian";
-import {GIT_AUTHOR_EMAIL, GIT_AUTHOR_NAME, Log, PLUGIN_TITLE} from "../constants";
+import {GIT_AUTHOR_EMAIL, GIT_AUTHOR_NAME, Log, Notify, PLUGIN_TITLE} from "../constants";
 import MultiSyncPlugin from "../main";
 import * as git from "isomorphic-git";
+import {StatusRow} from "isomorphic-git";
 
+
+export enum TAddStatus {
+    Empty = 0,
+    Success = 1,
+    Conflicts = 2
+}
 
 type TRequestOptions = {
     url: string;
@@ -139,6 +146,41 @@ export class GitSdk {
         }
     }
 
+    async getStatus(): Promise<StatusRow[]> {
+        return await git.statusMatrix({
+            ...this.gitOpts(),
+            ref: 'origin/' + this.getTargetBranch(),
+            filter: f => !f.startsWith('.obsidian')
+        });
+    }
+
+    async getAllFiles(): Promise<string[]> {
+        return this.plugin.files.getAllFiles()
+    }
+
+    async addAll(): Promise<boolean> {
+        const files = await this.getAllFiles();
+
+        for (const filepath of files) {
+            await git.add({...this.gitOpts(), filepath: filepath});
+        }
+
+
+        const matrix = await this.getStatus();
+        return matrix.length != 0;
+    }
+
+    async removeAll(): Promise<void> {
+        const matrix = await this.getStatus();
+
+        for (const [filepath, , ,] of matrix) {
+            try {
+                await git.remove({...this.gitOpts(), filepath: filepath});
+            } catch {
+            }
+        }
+    }
+
     async hasConflicts(): Promise<boolean> {
         const matrix = await git.statusMatrix({
             ...this.gitOpts(),
@@ -146,19 +188,9 @@ export class GitSdk {
             filter: f => !f.startsWith('.obsidian')
         });
 
-        for (const [filename, h, w, s] of matrix) {
-            if (h !== 1 || w !== 1 || s !== 1) {
-                const ours = await this.readFileContent(filename);
-                const theirs = await this.readRemoteFileContent(filename);
-
-                if (ours !== theirs) {
-                    console.log('------------')
-                    console.log(ours)
-                    console.log('==== vs')
-                    console.log(theirs)
-                    console.log('------------')
-                    return true
-                }
+        for (const row of matrix) {
+            if (!(await this.equalsToRemote(row))) {
+                return true;
             }
         }
 
@@ -213,6 +245,36 @@ export class GitSdk {
         });
     }
 
+    async pushOrFail(): Promise<void> {
+        Log('pushing...');
+        await git.push({
+            ...this.netOpts(),
+            ref: this.getTargetBranch(),
+        });
+    }
+
+    async commit(): Promise<void> {
+        const now = new Date().toISOString().replace("T", " ").slice(0, 19);
+        await git.commit({...this.gitOpts(), message: `sync: ${now}`,});
+    }
+
+    private async equalsToRemote([filename, h, w, s]: StatusRow): Promise<boolean> {
+        if (h !== 1 || w !== 1 || s !== 1) {
+            const ours = await this.readFileContent(filename);
+            const theirs = await this.readRemoteFileContent(filename);
+
+            if (ours !== theirs) {
+                console.log('--- ', filename, h, w, s)
+                console.log(ours)
+                console.log('==== vs')
+                console.log(theirs)
+                console.log('------------')
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private async readFileContent(filepath: string): Promise<string> {
         try {

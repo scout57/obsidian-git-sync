@@ -26,7 +26,8 @@ export class AppFiles {
         return this.plugin.app.vault
             .getFiles()
             .map((f) => f.path)
-            .filter((p) => !this.isExcluded(p));
+            .filter((p) => !this.isExcluded(p))
+            .filter((p) => !this.isSystem(p));
     }
 
     private isExcluded(filepath: string): boolean {
@@ -37,6 +38,11 @@ export class AppFiles {
             return new RegExp(`^${regexStr}$`).test(filepath);
         });
     }
+
+    private isSystem(filepath: string): boolean {
+        return filepath.startsWith('.obsidian')
+    }
+
 
     public getVaultPath(): string {
         return (this.plugin.app.vault.adapter as any).basePath ?? '';
